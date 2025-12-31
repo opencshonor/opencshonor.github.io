@@ -3,20 +3,22 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>OpenCSHonor | 计试一站式学术资源共享</title>
+  <title>OpenCSHonor | Terminal Access</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Merriweather:wght@400;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Noto+Sans+SC:wght@400;900&display=swap" rel="stylesheet">
 
   <style>
     :root {
-      --bg-color: #fdfdfd;       /* 极淡的纸张白 */
-      --text-main: #1e293b;      /* 深岩灰 */
-      --text-sub: #64748b;       /* 柔和灰 */
-      --accent-color: #0f172a;   /* 接近黑色的蓝，严谨 */
-      --border-color: #e2e8f0;
-      --card-bg: #ffffff;
+      --bg-color: #050507;       
+      --primary: #3b82f6;        
+      --accent: #10b981;         
+      --text-main: #ffffff;      
+      --text-sub: #71717a;       
+      --terminal-prompt: #f87171; 
+      --border: rgba(59, 130, 246, 0.2);
+      --font-code: "JetBrains Mono", monospace;
     }
 
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -25,246 +27,389 @@
       min-height: 100vh;
       background-color: var(--bg-color);
       color: var(--text-main);
-      font-family: "Inter", -apple-system, sans-serif;
+      font-family: "Noto Sans SC", sans-serif;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 40px 20px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* 终端背景网格 + 扫描线特效 */
+    body::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background-image: 
+        linear-gradient(var(--border) 1px, transparent 1px),
+        linear-gradient(90deg, var(--border) 1px, transparent 1px);
+      background-size: 35px 35px;
+      mask-image: radial-gradient(circle at center, black 30%, transparent 90%);
+      z-index: -1;
+    }
+
+    /* 赛博扫描线 */
+    body::after {
+      content: "";
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 4px;
+      background: linear-gradient(to bottom, transparent, rgba(59, 130, 246, 0.1), transparent);
+      animation: scanline 8s linear infinite;
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    @keyframes scanline {
+      0% { transform: translateY(-100vh); }
+      100% { transform: translateY(100vh); }
     }
 
     .container {
       width: 100%;
-      max-width: 960px; /* 限制最大宽度，保持阅读舒适度 */
+      max-width: 1100px;
+      padding: 10px 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      transition: filter 0.2s;
+    }
+
+    /* 按键冲击波特效类 */
+    .glitch-hit {
+      filter: brightness(1.5) contrast(1.2) hue-rotate(10deg);
+    }
+
+    /* === 主 Logo 区域 === */
+    .hero-logo-wrapper {
+      position: relative;
+      margin-bottom: 5px;
+      animation: float 6s ease-in-out infinite;
+    }
+
+    .hero-img {
+      width: 480px; 
+      filter: drop-shadow(0 0 35px rgba(59, 130, 246, 0.3));
+      transition: transform 0.3s;
+    }
+    .hero-img:hover { transform: scale(1.02); }
+
+    .hero-ring {
+      position: absolute;
+      top: 50%; left: 50%;
+      width: 580px; height: 580px;
+      border: 1px dashed var(--primary);
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      opacity: 0.12;
+      animation: spin 60s linear infinite;
+    }
+
+    .project-tag {
+      font-family: var(--font-code);
+      background: rgba(59, 130, 246, 0.1);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--primary);
+      padding: 4px 15px;
+      color: var(--primary);
+      font-size: 1rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      margin-bottom: 1.2rem;
+      text-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+    }
+
+    /* === Linux Root 终端 === */
+    .terminal-window {
+      background: rgba(0, 0, 0, 0.8);
+      border: 1px solid var(--border);
+      padding: 10px 25px;
+      border-radius: 4px;
+      font-family: var(--font-code);
+      font-size: 1.2rem;
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      box-shadow: inset 0 0 20px rgba(59, 130, 246, 0.05);
+    }
+
+    .prompt-user { color: var(--terminal-prompt); font-weight: bold; }
+    .prompt-path { color: var(--primary); }
+    .prompt-char { color: var(--text-main); }
+
+    .typing-text { color: var(--accent); font-weight: bold; text-shadow: 0 0 8px rgba(16, 185, 129, 0.3); }
+    
+    .cursor {
+      display: inline-block;
+      width: 10px; height: 1.2em;
+      background-color: var(--accent);
+      animation: blink 1s step-end infinite;
+      vertical-align: middle;
+      margin-left: 2px;
+      box-shadow: 0 0 10px var(--accent);
+    }
+
+    /* === 统计卡片 === */
+    .stats-container {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 1.8rem;
+    }
+
+    .stat-card {
+      background: rgba(10, 10, 15, 0.8);
+      border: 1px solid var(--border);
+      padding: 15px 25px;
+      min-width: 180px;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+    }
+    /* 卡片边角装饰 */
+    .stat-card::after {
+      content: ""; position: absolute; top: 0; right: 0;
+      width: 15px; height: 15px; border-top: 2px solid var(--primary); border-right: 2px solid var(--primary);
+    }
+
+    .stat-card.visible { opacity: 1; transform: translateY(0); }
+    .stat-card:hover { border-color: var(--primary); background: rgba(59, 130, 246, 0.05); }
+
+    .stat-value { font-family: var(--font-code); font-size: 1.8rem; color: var(--text-main); }
+    .stat-unit { font-size: 0.8rem; color: var(--primary); margin-left: 3px; font-weight: bold; }
+    .stat-label { font-size: 0.7rem; color: var(--text-sub); margin-top: 3px; letter-spacing: 1px; }
+
+    /* === Supported By (技术支持区) === */
+    .support-section {
+      width: 100%;
+      margin-bottom: 1.8rem;
       text-align: center;
     }
-
-    /* 顶部 Logo 区域 */
-    .brand-area {
-      margin-bottom: 2rem;
-      position: relative;
-      display: inline-block;
-    }
     
-    .brand-logo {
-      /* 这里控制你的主Logo大小 */
-      width: 100%; 
-      max-width: 600px; 
-      height: auto;
-      filter: contrast(1.1); /* 稍微增加对比度 */
-    }
-
-    /* 学术风格的标题与副标题 */
-    .hero-text {
-      margin-bottom: 4rem;
-      position: relative;
-    }
-
-    .hero-text::after {
-      /* 装饰性短横线 */
-      content: "";
-      display: block;
-      width: 60px;
-      height: 3px;
-      background-color: var(--accent-color);
-      margin: 1.5rem auto 0;
-      opacity: 0.8;
-    }
-
-    .subtitle {
-      font-family: "Merriweather", serif; /* 衬线体，更具学术感 */
-      font-size: clamp(1.5rem, 3vw, 2rem);
-      font-weight: 700;
-      color: var(--text-main);
-      line-height: 1.4;
-      letter-spacing: -0.02em;
-    }
-
-    .description {
-      margin-top: 1rem;
-      font-size: 1rem;
+    .support-header {
+      font-family: var(--font-code);
+      font-size: 0.65rem;
       color: var(--text-sub);
-      font-weight: 400;
-      letter-spacing: 0.05em;
-      text-transform: uppercase; /* 大写英文会有索引感，中文则显得整齐 */
-      font-size: 0.85rem;
-    }
-
-    /* 静态网格 Logo 展示区 (替代原本的滚动) */
-    .partners-section {
-      margin-bottom: 4rem;
-    }
-    
-    .partners-label {
-      font-size: 0.75rem;
-      color: #94a3b8;
-      margin-bottom: 1.5rem;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      font-weight: 600;
+      margin-bottom: 12px;
+      letter-spacing: 3px;
+      opacity: 0.6;
     }
 
     .logo-grid {
-      display: grid;
-      /* 自适应网格：每列最小120px */
-      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); 
-      gap: 1.5rem;
+      display: flex;
       justify-content: center;
       align-items: center;
+      gap: 30px;
     }
 
-    .logo-card {
-      background: var(--card-bg);
-      border: 1px solid var(--border-color);
-      height: 80px;
+    .logo-img {
+      height: 24px;
+      filter: grayscale(1) brightness(2) opacity(0.3);
+      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    
+    .logo-img:hover {
+      filter: grayscale(0) brightness(1) opacity(1);
+      transform: scale(1.15) rotate(2deg);
+    }
+
+    /* === 登录按钮 === */
+    .action-area { position: relative; }
+    .enter-btn {
+      background: rgba(59, 130, 246, 0.05);
+      color: var(--text-main);
+      border: 1px solid var(--primary);
+      padding: 12px 50px;
+      font-family: var(--font-code);
+      font-size: 0.95rem;
+      font-weight: bold;
+      text-decoration: none;
       display: flex;
       align-items: center;
-      justify-content: center;
-      padding: 12px 20px;
-      border-radius: 4px; /* 较小的圆角，更硬朗 */
-      transition: all 0.3s ease;
-    }
-
-    .logo-card:hover {
-      border-color: #cbd5e1;
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(148, 163, 184, 0.1);
-    }
-
-    .logo-card img {
-      max-width: 100%;
-      max-height: 100%;
-      object-fit: contain;
-      filter: grayscale(100%); /* 默认黑白，鼠标悬浮变色，非常学术的做法 */
-      opacity: 0.7;
-      transition: all 0.3s ease;
-    }
-
-    .logo-card:hover img {
-      filter: grayscale(0%);
-      opacity: 1;
-    }
-
-    /* 按钮设计 */
-    .action-area {
-      margin-top: 1rem;
-    }
-
-    .enter-btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      padding: 14px 48px;
-      font-size: 1rem;
-      font-family: "Inter", sans-serif;
-      font-weight: 500;
-      color: #fff;
-      background-color: var(--accent-color);
-      border: 1px solid var(--accent-color);
-      border-radius: 6px;
-      cursor: pointer;
-      text-decoration: none;
-      transition: all 0.2s ease;
-      letter-spacing: 0.03em;
+      gap: 15px;
+      transition: all 0.3s;
+      position: relative;
+      overflow: hidden;
     }
 
     .enter-btn:hover {
-      background-color: #334155;
-      border-color: #334155;
-      transform: translateY(-1px);
+      background: var(--primary);
+      color: #000;
+      box-shadow: 0 0 35px rgba(59, 130, 246, 0.6);
+      transform: translateY(-2px);
     }
 
-    .enter-btn:active {
-      transform: translateY(0);
-    }
+    .enter-key { font-size: 0.7rem; border: 1px solid currentColor; padding: 1px 6px; border-radius: 3px; opacity: 0.8; }
 
-    /* 极简页脚 */
     footer {
-      margin-top: 4rem;
-      border-top: 1px solid #f1f5f9;
-      padding-top: 1.5rem;
-      width: 100%;
-      color: #cbd5e1;
-      font-size: 0.75rem;
+      position: absolute;
+      bottom: 15px;
+      text-align: center;
+      font-family: var(--font-code);
+      font-size: 0.6rem;
+      color: var(--text-sub);
+      letter-spacing: 1px;
     }
 
-    @media (max-width: 600px) {
-      .logo-grid {
-        grid-template-columns: repeat(2, 1fr); /* 手机端强制两列 */
-        gap: 1rem;
-      }
-      .subtitle {
-        font-size: 1.4rem;
-      }
+    @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+    @keyframes spin { 100% { transform: translate(-50%, -50%) rotate(360deg); } }
+    @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+    @media (max-width: 768px) {
+      .hero-img { width: 280px; }
+      .hero-ring { width: 340px; height: 340px; }
+      .stats-container { flex-direction: column; gap: 8px; }
+      .terminal-window { font-size: 1rem; width: 90%; }
+      .logo-grid { gap: 15px; flex-wrap: wrap; }
     }
   </style>
 </head>
 
 <body>
-
-  <div class="container">
+  <div class="container" id="main-container">
     
-    <header class="brand-area">
-      <img src="assets/mylogo.png" alt="OpenCSHonor Logo" class="brand-logo" onerror="this.style.display='none'; document.getElementById('backup-title').style.display='block';">
-      <h1 id="backup-title" style="display:none; font-family:'Merriweather',serif; font-size:2.5rem; color:#0f172a;">OpenCSHonor</h1>
-    </header>
-
-    <div class="hero-text">
-      <h2 class="subtitle">计试一站式学术资源共享项目</h2>
-      <p class="description">由计学组开发并长期维护</p>
+    <div class="hero-logo-wrapper">
+      <div class="hero-ring"></div>
+      <img src="assets/mylogo.png" alt="OpenCSHonor" class="hero-img">
     </div>
 
-    <div class="partners-section">
-      <div class="partners-label">Supported By</div>
-      <div class="logo-grid" id="logo-grid">
-        </div>
+    <div class="project-tag">计试一站式学术资源共享项目</div>
+
+    <div class="terminal-window">
+      <div class="prompt">
+        <span class="prompt-user">root</span>@<span>opencshonor</span>:<span class="prompt-path">~</span><span class="prompt-char">#</span>
+      </div>
+      <div class="input-area">
+        <span style="color:var(--text-sub)">这里有</span>
+        <span class="typing-text" id="typewriter"></span><span class="cursor"></span>
+      </div>
+    </div>
+
+    <div class="stats-container" id="stats-section">
+      <div class="stat-card">
+        <div class="stat-value"><span class="counter" data-target="2400">0</span><span class="stat-unit">+</span></div>
+        <div class="stat-label">托管文件总数</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value"><span class="prefix"></span><span class="counter" data-target="50">0</span><span class="stat-unit">GB</span></div>
+        <div class="stat-label">托管文件大小</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value"><span class="prefix"></span><span class="counter" data-target="32">0</span><span class="stat-unit">%</span></div>
+        <div class="stat-label">科目覆盖</div>
+      </div>
+    </div>
+
+    <div class="support-section">
+      <div class="support-header">--- HARDWARE ACCELERATED BY ---</div>
+      <div class="logo-grid">
+        <img src="assets/1.png" class="logo-img" onerror="this.style.display='none'">
+        <img src="assets/2.png" class="logo-img" onerror="this.style.display='none'">
+        <img src="assets/3.png" class="logo-img" onerror="this.style.display='none'">
+        <img src="assets/4.png" class="logo-img" onerror="this.style.display='none'">
+        <img src="assets/5.png" class="logo-img" onerror="this.style.display='none'">
+        <img src="assets/6.png" class="logo-img" onerror="this.style.display='none'">
+      </div>
     </div>
 
     <div class="action-area">
-      <a href="https://opencshonor.vercel.app/site/index.html" class="enter-btn" id="enter-btn">立刻进入 &rarr;</a>
+      <a href="https://opencshonor.vercel.app/site/index.html" class="enter-btn" id="enter-btn">
+        立刻进入 <span class="enter-key">ENTER ↵</span>
+      </a>
     </div>
 
     <footer>
-      &copy; OpenCSHonor Project. All Rights Reserved.
+      <div>&copy; OpenCSHonor Project. All Rights Reserved. Version 25.12-Beta</div>
+      <div style="opacity:0.6; margin-top: 2px;">由计学组开发并长期维护</div>
     </footer>
   </div>
 
   <script>
-    // 配置区域
-    const LOGO_COUNT = 6;
-    const TARGET_PAGE = "main.html";
+    const PHRASES = ["课内资料", "科研学术", "研讨班课件", "出国交流", "升学深造", "竞赛经验", "杂项干货"];
 
-    // 渲染网格函数
-    function renderGrid() {
-      const grid = document.getElementById('logo-grid');
-      
-      // 简单的循环生成 1 到 6 的图片
-      for (let i = 1; i <= LOGO_COUNT; i++) {
-        const card = document.createElement('div');
-        card.className = 'logo-card';
-        
-        const img = document.createElement('img');
-        img.src = `assets/${i}.png`;
-        img.alt = `Partner Logo ${i}`;
-        
-        // 如果图片加载失败，移除该卡片，保持布局整洁
-        img.onerror = () => {
-          card.remove(); 
-        };
-        
-        card.appendChild(img);
-        grid.appendChild(card);
+    function countUp(el, target, hasPrefix) {
+      let startTime = null;
+      const duration = 2000;
+      function animation(currentTime) {
+        if (!startTime) startTime = currentTime;
+        const progress = Math.min((currentTime - startTime) / duration, 1);
+        const easeProgress = 1 - Math.pow(2, -10 * progress);
+        const currentVal = Math.floor(easeProgress * target);
+        el.innerText = currentVal;
+        if (progress < 1) { requestAnimationFrame(animation); }
+        else {
+          el.innerText = target;
+          if (hasPrefix) {
+            const prefixSpan = el.parentElement.querySelector('.prefix');
+            if (prefixSpan) prefixSpan.innerText = '> ';
+          }
+        }
+      }
+      requestAnimationFrame(animation);
+    }
+
+    function setupObserver() {
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            document.querySelectorAll('.stat-card').forEach((card, index) => {
+              setTimeout(() => {
+                card.classList.add('visible');
+                const counter = card.querySelector('.counter');
+                countUp(counter, +counter.getAttribute('data-target'), index > 0);
+              }, index * 200);
+            });
+            observer.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.1 });
+      observer.observe(document.getElementById('stats-section'));
+    }
+
+    class TerminalTypeWriter {
+      constructor(el, phrases) {
+        this.el = el; this.phrases = phrases;
+        this.loop = 0; this.txt = ''; this.isDeleting = false;
+        this.tick();
+      }
+      tick() {
+        const i = this.loop % this.phrases.length;
+        const full = this.phrases[i];
+        this.txt = this.isDeleting ? full.substring(0, this.txt.length - 1) : full.substring(0, this.txt.length + 1);
+        this.el.innerHTML = this.txt;
+        let delta = 100 + Math.random() * 50;
+        if (this.isDeleting) delta /= 2;
+        if (!this.isDeleting && this.txt === full) { delta = 2000; this.isDeleting = true; }
+        else if (this.isDeleting && this.txt === '') { this.isDeleting = false; this.loop++; delta = 500; }
+        setTimeout(() => this.tick(), delta);
       }
     }
 
-    // 初始化
-    renderGrid();
+    // 交互特效逻辑
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        const container = document.getElementById('main-container');
+        const btn = document.getElementById('enter-btn');
+        
+        // 视觉冲击特效
+        container.classList.add('glitch-hit');
+        btn.style.background = 'var(--primary)';
+        btn.style.color = '#000';
+        
+        setTimeout(() => {
+          window.location.href = btn.href;
+        }, 150);
+      }
+    });
 
-    // 按钮跳转
-    document.getElementById("enter-btn").addEventListener("click", () => {
-      window.location.href = TARGET_PAGE;
+    document.addEventListener('DOMContentLoaded', () => {
+      setupObserver();
+      new TerminalTypeWriter(document.getElementById('typewriter'), PHRASES);
     });
   </script>
-
 </body>
 </html>
